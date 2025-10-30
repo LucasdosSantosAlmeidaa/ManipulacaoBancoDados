@@ -1,0 +1,40 @@
+---
+title: "Desafio01"
+author: "Lucas Dos Santos Almeida"
+format: html
+editor: visual
+---
+
+```{r}
+library(readr) 
+
+flights <- "flights.csv" 
+
+cat("Tempo de carregamento (read.csv - R Base):\n")
+tempo_base <- system.time({
+  dados_base <- read.csv(flights)
+})
+print(tempo_base)
+
+cat("\nTempo de carregamento (read_csv - readr):\n")
+tempo_readr <- system.time({
+  dados_readr <- read_csv(flights)
+})
+print(tempo_readr)
+```
+
+```{python}
+import pandas as pd
+import time
+
+caminho_arquivo = "flights.csv" 
+
+inicio = time.time()
+
+dados_pandas = pd.read_csv(caminho_arquivo)
+
+fim = time.time()
+tempo_pandas = fim - inicio
+
+print(f"\nTempo de carregamento (read_csv - pandas):\n{tempo_pandas:.4f} segundos")
+```
