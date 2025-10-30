@@ -1,0 +1,169 @@
+---
+title: "Desafio11"
+format: html
+editor: visual
+---
+
+```{r}
+
+
+# Carregar o pacote 'tidyverse' (inclui dplyr, tidyr, ggplot2 e readr)
+library(tidyverse) 
+
+# Definir os nomes das colunas na ordem correta
+colunas <- c(
+    "age", "workclass", "fnlwgt", "education", "education-num",
+    "marital-status", "occupation", "relationship", "race", "sex",
+    "capital-gain", "capital-loss", "hours-per-week", "native-country",
+    "income"
+)
+
+# Definir os tipos de dados para leitura
+col_specs <- cols(
+    age = col_integer(), workclass = col_character(), fnlwgt = col_integer(),
+    education = col_character(), `education-num` = col_integer(),
+    `marital-status` = col_character(), occupation = col_character(),
+    relationship = col_character(), race = col_character(), sex = col_character(),
+    `capital-gain` = col_integer(), `capital-loss` = col_integer(),
+    `hours-per-week` = col_integer(), `native-country` = col_character(),
+    income = col_character()
+)
+
+# Importar o arquivo CSV. O parâmetro 'na = "?"' trata o símbolo '?' como valor faltante.
+df_renda_adulta <- read_csv(
+    "renda_adulta.csv.gz",
+    col_names = colunas,       # Atribuir os nomes das colunas
+    col_types = col_specs,     # Atribuir os tipos de dados
+    na = "?",                  
+    show_col_types = FALSE     
+)
+
+# Apresentar o schema (tipos de dados)
+print(glimpse(df_renda_adulta)) 
+
+# Apresentar as dimensões (Linhas, Colunas)
+cat("Dimensões da tabela:", dim(df_renda_adulta), "\n\n")
+
+
+
+
+#Contar quantas pessoas recebem acima/abaixo de $50.000
+contagem_renda <- df_renda_adulta %>%
+    # Conta a ocorrência de cada categoria de income e ordena
+    count(income, name = "total_pessoas") %>% 
+    arrange(desc(total_pessoas))
+
+
+#Criar o objeto 'renda_longo': transformar colunas de ganho/perda de capital para o formato longo
+renda_longo <- df_renda_adulta %>%
+    # Usa pivot_longer para empilhar as colunas wide
+    pivot_longer(
+        cols = c(`capital-gain`, `capital-loss`),
+        names_to = "tipo",    # Coluna para os nomes (gain/loss)
+        values_to = "Valor"   # Coluna para os valores numéricos
+    )
+
+
+# Calcular a média de horas trabalhadas por classe salarial
+media_horas_renda <- df_renda_adulta %>%
+    group_by(income) %>%
+    # Calcula a média da coluna hours-per-week
+    summarise(media_horas_trabalhadas = mean(`hours-per-week`, na.rm = TRUE)) %>%
+    ungroup()
+
+
+#Contar quantas pessoas foram amostradas em cada profissão
+contagem_profissao <- df_renda_adulta %>%
+    # Conta o número de linhas para cada profissão e ordena
+    count(occupation, name = "total_amostrado") %>%
+    arrange(desc(total_amostrado))
+
+
+
+
+
+#Gráfico de Barras: Média de Horas Trabalhadas por Nível Salarial
+grafico_horas <- media_horas_renda %>%
+    # Cria o gráfico usando o objeto 'media_horas_renda'
+    ggplot(aes(x = income, y = media_horas_trabalhadas, fill = income)) +
+    geom_bar(stat = "identity") +
+    labs(
+        title = "Média de Horas Trabalhadas em Função da Renda Anual",
+        x = "Nível Salarial",
+        y = "Média de Horas Semanais",
+        fill = "Nível Salarial"
+    ) +
+    theme_minimal()
+
+
+
+# 6. Desafio: Analisar disparidade salarial entre Gêneros
+df_analise_sexo <- df_renda_adulta %>%
+    group_by(sex) %>%
+    summarise(
+        # Calcula a proporção de indivíduos que ganham >$50K dentro de cada gênero
+        proporcao_maior_50k = sum(income == ">50K") / n()
+    ) %>%
+    ungroup() %>%
+    arrange(desc(proporcao_maior_50k))
+
+
+```
+
+```{r}
+# Apresentar o schema (tipos de dados)
+print(glimpse(df_renda_adulta)) 
+
+
+```
+
+```{r}
+# Apresentar as dimensões (Linhas, Colunas)
+cat("Dimensões da tabela:", dim(df_renda_adulta), "\n\n")
+```
+
+```{r}
+#Contar quantas pessoas recebem acima/abaixo de $50.000
+
+print(contagem_renda)
+
+```
+
+Crie um objeto chamado renda_longo, no qual você transforma as colunas capital-gain e capital-loss (formato wide) para formato longo. Os valores destas variáveis devem ser armazenados numa nova coluna chamada Valor e os tipos de valores (gain e loss) devem ser armazenados numa coluna chamada tipo.
+
+```{r}
+
+renda_longo
+
+```
+
+1.  Quais são as médias de horas trabalhadas por classe salarial?
+
+```{r}
+print(media_horas_renda)
+
+```
+
+Se cada linha representa uma pessoa, quantas pessoas foram amostradas em cada profissão?
+
+```{r}
+print(contagem_profissao)
+
+```
+
+Crie um gráfico de barras que apresente o número médio de horas trabalhadas semanalmente em função do nível salarial.
+
+```{r}
+
+print(grafico_horas)
+
+
+```
+
+Desafio: existe alguma evidência de discriminação salarial entre gêneros biológicos?
+
+```{r}
+# Apresenta a proporção
+print(df_analise_sexo)
+
+```
